@@ -1,75 +1,120 @@
-import React, { Component } from "react";
-import { MuiThemeProvider } from "material-ui/styles";
+import React,  { Component } from 'react';
 
-class Login extends React.Component {
-  constructor(props) {
-    super(props);
+import logo from '../assets/logo-blue.svg';
 
-    this.state = {
-      email: "",
-      apikey: ""
-    };
+// Matrial UI component
+import { Card, CardActions, CardHeader, CardTitle, CardText } from 'material-ui/Card';
+import RaisedButton from 'material-ui/RaisedButton';
+import TextField from 'material-ui/TextField';
+
+// Service
+import RebrandlyApi from '../services/rebrandlyApi';
+
+class Login extends Component {
+  alignCenter = {
+    height: "100vh",          
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
   }
 
-  render() {
+  cardWidth = {
+    width: "500px"
+  }
+
+  floatActionButtonRight = {
+    float: "right"
+  }
+
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      email: '',
+      apikey: ''
+    }
+  }
+
+  render () {
     return (
-      <div>
-        <Card>
-          <CardHeader title="Login Page" avatar={boy} />
-          <TextField
-            type="email"
-            hintText="Enter email"
-            value={this.state.email}
-            onChange={e => this.onEmailChange(e)}
+      <div style={this.alignCenter}>
+        <Card style={this.cardWidth}>
+          <CardHeader
+            title="Rebrandly"
+            subtitle="View on your rebrandly resource!!!"
+            avatar={logo}
           />
-          <br />
-          <TextField
-            type="password"
-            hintText="Enter API Key"
-            value={this.state.apikey}
-            onChange={e => this.onApiKeyChange(e)}
-          />
-          <br />
-          <CardActions>
-            <RaisedButton label="Submit" onClick={() => this.onSubmit()} />
+          <CardTitle title="Login"/>
+          <CardText>
+            <TextField
+              type="email"
+              fullWidth={true}
+              floatingLabelText="Email Address"
+              value={this.state.email}
+              onChange={ (e) => this.onChangeEmail(e) }
+            />
+            <TextField
+              type="password"
+              fullWidth={true}
+              floatingLabelText="API Key"
+              value={this.state.apikey}
+              onChange={ (e) => this.onChangeApikey(e) }
+            />
+          </CardText>
+          <CardActions style={this.floatActionButtonRight}>
+            <RaisedButton label="Submit" primary={true} onClick={ () => this.submitForm() }/>
           </CardActions>
         </Card>
       </div>
-    );
-  }
-  // 1a184d14d77f4be4a758aca8f5e72c3b
-  onEmailChange(e) {
-    this.setState({ email: e.target.value });
+    )
   }
 
-  onApiKeyChange(e) {
-    this.setState({ apikey: e.target.value });
+  onChangeEmail(e) {
+    this.setState({
+      email: e.target.value
+    })
   }
-  onSubmit() {
-    fetch("https://api.rebrandly.com/v1/account", {
-      headers: {
-        apikey: this.state.apikey
+
+  onChangeApikey(e) {
+    this.setState({
+      apikey: e.target.value
+    })
+  }
+
+  submitForm() {
+    this.getAccountDetail(this.state.apikey)
+    .then(account => {
+      if(account.email === this.state.email) {
+        sessionStorage.setItem('apikey', this.state.apikey)
+        sessionStorage.setItem('email', this.state.email)
+        this.props.history.push('/board')
       }
-    }).then(response => {
-      if (response.ok) {
-        // console.log(response);
-        response.json().then(data => {
-          if (data.email === this.state.email) {
-            //console.log(data);
-            console.log("Right User!");
-            sessionStorage.getItem("apikey", this.state.apikey);
-            return <Routes />;
-          } else {
-            console.log(data);
-            console.log("Wrong User!");
-          }
-        });
-      } else {
-        alert(response.json());
+      else {
+        alert('Credentail mis match')
       }
-    });
-    // .catch((error) => console.log(error));
-    console.log({ email: this.state.email });
+    })
+    .catch(error => {
+      alert(error.message)
+    })
+  }
+
+  getAccountDetail(apikey) {
+    return RebrandlyApi.get('/account', {headers: {apikey: apikey}})
+  }
+
+  componentWillMount() {
+    const apikeySession = sessionStorage.getItem('apikey')
+    if(apikeySession) {
+      this.getAccountDetail(apikeySession)
+      .then(account => {
+        if(account) {
+          this.props.history.push('/board')
+        }
+      })
+      .catch(error => {
+        sessionStorage.removeItem('apikey')
+      })
+    }
   }
 }
 

@@ -1,35 +1,52 @@
 import React, { Component } from 'react';
+
+// Material ui Component
 import AppBar from 'material-ui/AppBar';
 import Drawer from 'material-ui/Drawer';
 import MenuItem from 'material-ui/MenuItem';
 
+//Component
+import AccountIcon from './AccountIcon'
+
 class Header extends Component {
-  constructor(props){
-    super(props);
+  constructor(props) {
+    super(props)
+
     this.state = {
-      sidebarOpen: false
+      sidebarOpen: false,
+      email: ''
     }
   }
-  toggleSidebar() {
-    this.setState({sidebarOpen: !this.state.sidebarOpen})
-  }
-  
+
   render() {
     return (
       <div>
         <AppBar 
-         title = "Title"
-         onLeftIconButtonClick={ () => this.setState({ sidebarOpen: !this.state.sidebarOpen}) }
+          title="Rebrandly"
+          iconElementRight={ <AccountIcon email={ this.state.email } />}
+          onLeftIconButtonClick = {() => this.toggleSidebar()}
         />
-        <Drawer open={this.state.sidebarOpen}
+        <Drawer 
+        open={ this.state.sidebarOpen }
         docked={false}
-         onRequestChange = {()=>{this.toggleSidebar()}}
+        onRequestChange = {() => this.toggleSidebar()}
         >
-         <MenuItem>First</MenuItem>
-         <MenuItem>Second</MenuItem>
+          <MenuItem>Home</MenuItem>
+          <MenuItem>First</MenuItem>
         </Drawer>
       </div>
-    );
+    )
+  }
+
+  toggleSidebar() {
+    this.setState({sidebarOpen: !this.state.sidebarOpen})
+  }
+
+  componentWillMount() {
+    this.setState({
+      email: sessionStorage.getItem('email')
+    })
   }
 }
+
 export default Header;
